@@ -12,7 +12,7 @@ pipeline{
         stage("Build & Start containers"){
             steps {
                 echo 'Builiding go Binaries and starting docker containers ...'
-                sh './project/make up_build'
+                sh 'make up_build'
             }
         }
 
@@ -31,7 +31,7 @@ pipeline{
     post{
         always {
             echo 'Tearing down containers and cleaning up...'
-            sh './project/make down'
+            sh 'make down'
             echo 'clean-up complete'
         }
 
