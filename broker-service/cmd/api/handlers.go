@@ -11,6 +11,14 @@ type RequestPayload struct {
 	Action string      `json:"action"`
 	Auth   AuthPayload `json:"auth,omitempty"`
 	Log    LogPayload  `json:"log,omitempty"`
+	Mail   MailPayload `json:"mail,omitempty"`
+}
+
+type MailPayload struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Subject string `json:"subject"`
+	Message string `json:"message"`
 }
 
 type AuthPayload struct {
@@ -48,9 +56,50 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 		app.authenticate(w, requestPayload.Auth)
 	case "log":
 		app.log(w, requestPayload.Log)
+	case "mail":
+		app.mail(w, requestPayload.Mail)
 	default:
 		app.errorJSON(w, errors.New("unknown action"))
 	}
+}
+
+func (app *Config) mail(w http.ResponseWriter, mail MailPayload) {
+
+	jsonData, err := json.MarshalIndent(mail, "", "\t")
+	if err != nil {
+		app.errorJSON(w, errors.New("Cannot indent the request"))
+		return
+	}
+
+	var serviceUrl string = "http://mail-service/send"
+	r, err := http.NewRequest("POST", serviceUrl, bytes.NewBuffer(jsonData))
+	if err != nil {
+
+		app.errorJSON(w, err)
+		return
+	}
+
+	r.Header.Set("Content-Type", "application/json")
+	var client *http.Client = &http.Client{}
+	resp, err := client.Do(r)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusAccepted {
+		app.errorJSON(w, errors.New("Error calling mail serbicve"))
+		return
+	}
+
+	var payload jsonResponse
+	payload.Error = false
+	payload.Message = "Message sent to " + mail.To
+
+	app.writeJSON(w, http.StatusAccepted, payload)
+
 }
 
 func (app *Config) log(w http.ResponseWriter, log LogPayload) {

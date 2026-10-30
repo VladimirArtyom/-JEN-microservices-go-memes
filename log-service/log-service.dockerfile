@@ -12,7 +12,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o brokerApp ./cmd/api
 FROM alpine:latest
 
 
-run mkdir /app
+RUN mkdir /app
 
 COPY --from=builder /app/logApp /app
 

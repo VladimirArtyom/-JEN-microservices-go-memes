@@ -2,6 +2,7 @@ FRONT_END_BINARY=frontApp
 BROKER_BINARY=brokerApp
 AUTH_BINARY=authApp
 LOG_BINARY=logApp
+MAIL_BINARY=mailerApp
 
 ## up: starts all containers in the background without forcing build
 up:
@@ -23,11 +24,16 @@ down:
 	docker compose down -v
 	@echo "Done!"
 
+build_mail:
+	@echo "Building Mailer binary..."
+	cd ./mail-service && env GOOS=linux CGO_ENABLED=0 go build -o ${MAIL_BINARY} ./cmd/api
+	@echo "Done!"
+
 ## build_broker: builds the broker binary as a linux executable
 build_broker:
 	@echo "Building broker binary..."
-##	cd ./broker-service && env GOOS=linux CGO_ENABLED=0 go build -o ${BROKER_BINARY} ./cmd/api
-	cd ./broker-service
+	cd ./broker-service && env GOOS=linux CGO_ENABLED=0 go build -o ${BROKER_BINARY} ./cmd/api
+## cd ./broker-service
 	@echo "Done!"
 
 build_log:
